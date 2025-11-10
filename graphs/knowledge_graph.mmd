@@ -1,0 +1,81 @@
+graph TD
+____["システム\n(System)"]
+B1["B1\n(Buffer)"]
+B3["B3\n(Buffer)"]
+B4["B4\n(Buffer)"]
+B5["B5\n(Buffer)"]
+B6["B6\n(Buffer)"]
+M2["M2\n(Machine)"]
+M3["M3\n(Machine)"]
+M4["M4\n(Machine)"]
+___["コスト\n(Metric)"]
+__["効率\n(Metric)"]
+_____2["ポイント\n(Metric)"]
+_______["サイクルタイム\n(Metric)"]
+________2["バッファサイズ\n(Metric)"]
+________["シミュレーション\n(Process)"]
+___3["ケース3\n(Concept)"]
+Eazy_Go["Eazy Go\n(Tool)"]
+____440["コスト:440\n(Value)"]
+___77_1["効率:77.1\n(Value)"]
+____240["コスト:240\n(Value)"]
+___69_45["効率:69.45\n(Value)"]
+____340["コスト:340\n(Value)"]
+___76_87["効率:76.87\n(Value)"]
+____75["コスト:75\n(Value)"]
+____69_17["コスト:69.17\n(Value)"]
+___55_20["効率:55.20\n(Value)"]
+___55_33["効率:55.33\n(Value)"]
+_____675_7["ポイント:675.7\n(Value)"]
+_____121["ポイント:121\n(Value)"]
+Ct_45["Ct:45\n(Value)"]
+Ct_50["Ct:50\n(Value)"]
+________10["バッファサイズ:10\n(Value)"]
+________3["バッファサイズ:3\n(Value)"]
+____ -->|INCLUDES| B1
+____ -->|INCLUDES| B3
+____ -->|INCLUDES| B4
+____ -->|INCLUDES| B5
+____ -->|INCLUDES| B6
+____ -->|INCLUDES| M2
+____ -->|INCLUDES| M3
+____ -->|INCLUDES| M4
+____ -->|HAS| ___
+____ -->|HAS| __
+____ -->|HAS| _____2
+M2 -->|HAS| _______
+M3 -->|HAS| _______
+M4 -->|HAS| _______
+B1 -->|HAS| ________2
+B3 -->|HAS| ________2
+B4 -->|HAS| ________2
+B6 -->|HAS| ________2
+___ -->|VALUE| ____440
+__ -->|VALUE| ___77_1
+___ -->|VALUE| ____240
+__ -->|VALUE| ___69_45
+___ -->|VALUE| ____340
+__ -->|VALUE| ___76_87
+__ -->|VALUE| ___55_20
+__ -->|VALUE| ___55_33
+___ -->|VALUE| ____75
+___ -->|VALUE| ____69_17
+_____2 -->|VALUE| _____675_7
+_____2 -->|VALUE| _____121
+M2 -->|VALUE| Ct_45
+M3 -->|VALUE| Ct_45
+M4 -->|VALUE| Ct_45
+M2 -->|VALUE| Ct_50
+M3 -->|VALUE| Ct_50
+M4 -->|VALUE| Ct_50
+B1 -->|VALUE| ________10
+B3 -->|VALUE| ________10
+B4 -->|VALUE| ________10
+B6 -->|VALUE| ________10
+B1 -->|VALUE| ________3
+B3 -->|VALUE| ________3
+B6 -->|VALUE| ________3
+____ -->|SELECTED| ___3
+____ -->|USES| Eazy_Go
+________ -->|MEASURES| ___
+________ -->|MEASURES| __

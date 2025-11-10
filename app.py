@@ -2,7 +2,7 @@
 import streamlit as st
 import streamlit.components.v1 as components  # For embedding custom HTML
 from generate_knowledge_graph import generate_knowledge_graph
-
+# This will start the application and open it in your default web browser (typically at http://localhost:8501).
 # Set up Streamlit page configuration
 st.set_page_config(
     page_icon=None, 
@@ -28,7 +28,7 @@ if input_method == "Upload txt":
     
     if uploaded_file is not None:
         # Read the uploaded file content and decode it as UTF-8 text
-        text = uploaded_file.read().decode("utf-8")
+        text = uploaded_file.read().decode("utf-8", errors="replace")
  
         # Button to generate the knowledge graph
         if st.sidebar.button("Generate Knowledge Graph"):

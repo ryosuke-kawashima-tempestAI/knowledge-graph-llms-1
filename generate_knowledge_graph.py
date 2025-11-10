@@ -6,14 +6,17 @@ from pyvis.network import Network
 from dotenv import load_dotenv
 import os
 import asyncio
-
+import re
+import datetime
 
 # Load the .env file
 load_dotenv()
 # Get API key from environment variable
 api_key = os.getenv("OPENAI_API_KEY")
+# api_key = input("Please enter your OpenAI API key: ")
+# os.environ["OPENAI_API_KEY"] = api_key
 
-llm = ChatOpenAI(temperature=0, model_name="gpt-4o")
+llm = ChatOpenAI(temperature=0, model_name="gpt-5")
 
 graph_transformer = LLMGraphTransformer(llm=llm)
 
@@ -123,5 +126,101 @@ def generate_knowledge_graph(text):
         pyvis.network.Network: The visualized network graph object.
     """
     graph_documents = asyncio.run(extract_graph_data(text))
+    # Recorde the generated graph in Mearmaid format
+    _export_graph_to_mermaid(graph_documents, filename="./graphs/knowledge_graph.mmd")
     net = visualize_graph(graph_documents)
     return net
+
+## My Added Fuctions Start Here ##
+def _export_graph_to_mermaid(graph_documents, direction="TD", include_types=True, filename=None):
+    """
+    Convert GraphDocument nodes and relationships to a Mermaid diagram string and optionally save it.
+
+    Args:
+        graph_documents (list): A list of GraphDocument objects (as returned by the graph transformer).
+        direction (str): Mermaid graph direction, e.g. "TD" (top-down), "LR" (left-right). Default "TD".
+        include_types (bool): If True, include node types in labels and relationship types as edge labels.
+        filename (str or None): If provided, save the mermaid text to this file path.
+
+    Returns:
+        str: The generated Mermaid diagram as a string (starts with "graph <direction>").
+    
+    Example:
+        mermaid_text = export_graph_to_mermaid(graph_documents, direction="LR", filename="graph.mmd")
+    """
+    if not graph_documents:
+        return f"graph {direction}\n"
+
+    if filename == None:
+        now = datetime.datetime.now()
+        filename = f"./knowledge_graph{now.year}-{now.month}-{now.day}-{now.hour}-{now.minute}.mmd"
+
+    doc = graph_documents[0]
+    nodes = getattr(doc, "nodes", []) or []
+    relationships = getattr(doc, "relationships", []) or []
+
+    def _sanitize_id(s):
+        # Keep IDs safe for Mermaid (alphanumeric and underscores)
+        return re.sub(r"[^A-Za-z0-9_]", "_", str(s))
+
+    def _escape_label(s):
+        # Escape double quotes for Mermaid label usage
+        return str(s).replace('"', '\\"')
+
+    id_map = {}
+    for node in nodes:
+        raw_id = getattr(node, "id", None)
+        if raw_id is None:
+            continue
+        safe_id = _sanitize_id(raw_id)
+        # Ensure unique safe ids if collisions occur
+        suffix = 1
+        base = safe_id
+        while safe_id in id_map.values():
+            suffix += 1
+            safe_id = f"{base}_{suffix}"
+        id_map[raw_id] = safe_id
+
+    lines = [f"graph {direction}"]
+
+    # Declare nodes (ensures isolated nodes are shown)
+    for node in nodes:
+        raw_id = getattr(node, "id", None)
+        if raw_id is None:
+            continue
+        safe_id = id_map[raw_id]
+        label_parts = [raw_id]
+        if include_types:
+            node_type = getattr(node, "type", None)
+            if node_type:
+                label_parts.append(f"({node_type})")
+        label = "\\n".join(_escape_label(p) for p in label_parts)
+        lines.append(f'{safe_id}["{label}"]')
+
+    # Add edges with optional relationship type labels
+    for rel in relationships:
+        src_raw = getattr(getattr(rel, "source", None), "id", None)
+        tgt_raw = getattr(getattr(rel, "target", None), "id", None)
+        if src_raw not in id_map or tgt_raw not in id_map:
+            # skip edges that reference unknown nodes
+            continue
+        src = id_map[src_raw]
+        tgt = id_map[tgt_raw]
+        rel_label = ""
+        if include_types:
+            rel_type = getattr(rel, "type", None)
+            if rel_type:
+                rel_label = f'|{_escape_label(str(rel_type))}|'
+        lines.append(f"{src} -->{rel_label} {tgt}")
+
+    mermaid_text = "\n".join(lines) + "\n"
+
+    if filename:
+        try:
+            with open(filename, "w", encoding="utf-8") as f:
+                f.write(mermaid_text)
+        except Exception:
+            # fail silently but still return the text
+            pass
+
+    return mermaid_text
